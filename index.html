@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Skincare Routines</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap');
+
+  :root {
+    --cream: #141210;
+    --blush: #3A2E28;
+    --terracotta: #D4896A;
+    --bark: #E8B49A;
+    --sage: #7A9E78;
+    --sage-light: #2A3A28;
+    --ink: #EDE8E4;
+    --mist: #221E1C;
+    --highlight-morning: #2A2210;
+    --highlight-afternoon: #0E1E24;
+    --highlight-night: #1E1228;
+    --border: #2E2420;
+    --white: #1C1814;
+    --shadow: 0 2px 16px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  header {
+    background: var(--white);
+    padding: 20px 20px 0;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+
+  .header-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--bark);
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+  }
+
+  .header-time {
+    font-size: 12px;
+    color: var(--terracotta);
+    font-weight: 500;
+    margin-bottom: 14px;
+    opacity: 0.85;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 10px 8px;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6A5A54;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    letter-spacing: 0.2px;
+  }
+
+  .tab-btn.active {
+    color: var(--bark);
+    border-bottom-color: var(--terracotta);
+  }
+
+  .tab-content { display: none; padding: 16px; }
+  .tab-content.active { display: block; }
+
+  /* Tracker card */
+  .tracker-card {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  .tracker-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--terracotta);
+    margin-bottom: 10px;
+  }
+
+  .tracker-status {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+
+  .tracker-status span {
+    color: var(--terracotta);
+    font-weight: 600;
+  }
+
+  .progress-bar-wrap {
+    background: var(--mist);
+    border-radius: 99px;
+    height: 6px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--terracotta), var(--sage));
+    border-radius: 99px;
+    transition: width 0.5s ease;
+  }
+
+  .tracker-btns {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-start {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    background: var(--terracotta);
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.2px;
+  }
+
+  .btn-start:active { transform: scale(0.97); }
+  .btn-start:hover { background: var(--bark); }
+
+  .btn-reset {
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: transparent;
+    color: #6A5A54;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-reset:hover { border-color: var(--terracotta); color: var(--terracotta); }
+
+  /* Routine steps */
+  .routine-section {
+    margin-bottom: 12px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    box-shadow: var(--shadow);
+    transition: border-color 0.4s;
+  }
+
+  .routine-section.highlight-morning { border-color: #7A6020; background: var(--highlight-morning); }
+  .routine-section.highlight-afternoon { border-color: #206070; background: var(--highlight-afternoon); }
+  .routine-section.highlight-night { border-color: #6A3A8A; background: var(--highlight-night); }
+
+  .routine-time-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .routine-section.highlight-morning .routine-time-header { border-bottom-color: #7A6020; }
+  .routine-section.highlight-afternoon .routine-time-header { border-bottom-color: #206070; }
+  .routine-section.highlight-night .routine-time-header { border-bottom-color: #6A3A8A; }
+
+  .time-icon { font-size: 18px; line-height: 1; }
+
+  .time-label {
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    color: var(--bark);
+    flex: 1;
+  }
+
+  .now-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 3px 8px;
+    border-radius: 99px;
+    display: none;
+  }
+
+  .highlight-morning .now-badge { display: inline-block; background: #7A6020; color: #F0D070; }
+  .highlight-afternoon .now-badge { display: inline-block; background: #206070; color: #80D8EE; }
+  .highlight-night .now-badge { display: inline-block; background: #6A3A8A; color: #D8B0F8; }
+
+  .routine-steps {
+    padding: 12px 14px;
+    list-style: none;
+  }
+
+  .routine-steps li {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink);
+    padding: 5px 0 5px 20px;
+    position: relative;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .routine-steps li:last-child { border-bottom: none; }
+
+  .routine-steps li::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 11px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--blush);
+  }
+
+  .highlight-morning .routine-steps li::before { background: #D4A030; }
+  .highlight-afternoon .routine-steps li::before { background: #40A8C8; }
+  .highlight-night .routine-steps li::before { background: #9A60C8; }
+
+  .note-text {
+    font-size: 11.5px;
+    color: #7A6860;
+    font-style: italic;
+    margin-top: 2px;
+    display: block;
+  }
+
+  /* Maintenance tracker (no end date) */
+  .streak-display {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .streak-number {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    color: var(--terracotta);
+    line-height: 1;
+  }
+
+  .streak-unit {
+    font-size: 13px;
+    color: #7A6860;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">Skincare Routines</div>
+  <div class="header-time" id="currentTimeDisplay"></div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('melasmax')">Melasmax</button>
+    <button class="tab-btn" onclick="switchTab('maintenance')">Maintenance</button>
+  </div>
+</header>
+
+<!-- TAB 1: MELASMAX -->
+<div id="tab-melasmax" class="tab-content active">
+
+  <div class="tracker-card">
+    <div class="tracker-label">6-Week Treatment</div>
+    <div class="tracker-status" id="melasmax-status">Not started yet</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="melasmax-bar" style="width:0%"></div>
+    </div>
+    <div class="tracker-btns">
+      <button class="btn-start" id="melasmax-btn" onclick="toggleMelasmaxTracker()">Start Treatment</button>
+      <button class="btn-reset" onclick="resetMelasmax()">Reset</button>
+    </div>
+  </div>
+
+  <div class="routine-section" id="melasmax-morning">
+    <div class="routine-time-header">
+      <span class="time-icon">☀️</span>
+      <span class="time-label">Morning</span>
+      <span class="now-badge">Now</span>
+    </div>
+    <ul class="routine-steps">
+      <li>Wash your face with a gentle cleanser.</li>
+      <li>Apply <strong>Dermaglós Emulsión Hidratante</strong> if your skin feels dry.</li>
+      <li>Apply <strong>Idraet Protector Solar FPS 50 con Color</strong> (tinted) generously — two-finger rule.</li>
+      <li>If outdoors for more than ~2 hours, reapply sunscreen.
+        <span class="note-text">Reapplication is key with melasma treatment.</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="routine-section" id="melasmax-afternoon">
+    <div class="routine-time-header">
+      <span class="time-icon">🚿</span>
+      <span class="time-label">After Shower</span>
+      <span class="now-badge">Now</span>
+    </div>
+    <ul class="routine-steps">
+      <li>Dry your face gently — don't rub.</li>
+      <li>If sunscreen washed off, apply <strong>Dermaglós Emulsión</strong> if needed.</li>
+      <li>Reapply <strong>Idraet Protector Solar FPS 50 con Color</strong> (tinted) generously — two-finger rule.
+        <span class="note-text">Only if your shower is at noon or in the afternoon.</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="routine-section" id="melasmax-night">
+    <div class="routine-time-header">
+      <span class="time-icon">🌙</span>
+      <span class="time-label">Night</span>
+      <span class="now-badge">Now</span>
+    </div>
+    <ul class="routine-steps">
+      <li>Cleanse your face gently.</li>
+      <li>Wait <strong>15–20 minutes</strong> so skin is completely dry.
+        <span class="note-text">This reduces irritation from hydroquinone.</span>
+      </li>
+      <li>Apply <strong>Melasmax</strong> only on the brown patches — thin layer.</li>
+      <li>Wait about 10 minutes.</li>
+      <li>If surrounding skin feels dry, apply <strong>Dermaglós Emulsión</strong> around face, avoiding the Melasmax-treated areas.</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- TAB 2: MAINTENANCE -->
+<div id="tab-maintenance" class="tab-content">
+
+  <div class="tracker-card">
+    <div class="tracker-label">Maintenance Streak</div>
+    <div class="streak-display">
+      <span class="streak-number" id="maintenance-days">0</span>
+      <span class="streak-unit" id="maintenance-unit">days</span>
+    </div>
+    <div class="tracker-status" id="maintenance-status">Track how long you keep this going 💪</div>
+    <div class="tracker-btns">
+      <button class="btn-start" id="maintenance-btn" onclick="toggleMaintenanceTracker()">Start Tracking</button>
+      <button class="btn-reset" onclick="resetMaintenance()">Reset</button>
+    </div>
+  </div>
+
+  <div class="routine-section" id="maintenance-morning">
+    <div class="routine-time-header">
+      <span class="time-icon">☀️</span>
+      <span class="time-label">Morning</span>
+      <span class="now-badge">Now</span>
+    </div>
+    <ul class="routine-steps">
+      <li>Wash your face with a gentle cleanser.</li>
+      <li>Apply <strong>Idraet Pro White Serum</strong> (Niacinamide + Chromabright®).</li>
+      <li>Allow it to absorb for <strong>1–2 minutes</strong>.</li>
+      <li>Apply <strong>Idraet Protector Solar FPS 50 con Color</strong> (tinted) generously — two-finger rule.</li>
+      <li>If outdoors for more than 2 hours, reapply sunscreen.</li>
+    </ul>
+  </div>
+
+  <div class="routine-section" id="maintenance-afternoon">
+    <div class="routine-time-header">
+      <span class="time-icon">🚿</span>
+      <span class="time-label">After Shower</span>
+      <span class="now-badge">Now</span>
+    </div>
+    <ul class="routine-steps">
+      <li>Pat your face dry — don't rub.</li>
+      <li>If skin feels dry, apply <strong>Dermaglós Emulsión Hidratante</strong>.</li>
+      <li>Apply <strong>Idraet Protector Solar FPS 50 con Color</strong> again before going outside.
+        <span class="note-text">Only if your shower is at noon or in the afternoon.</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="routine-section" id="maintenance-night">
+    <div class="routine-time-header">
+      <span class="time-icon">🌙</span>
+      <span class="time-label">Night</span>
+      <span class="now-badge">Now</span>
+    </div>
+    <ul class="routine-steps">
+      <li>Wash your face with a gentle cleanser.</li>
+      <li>Apply <strong>Acm Azéane Crema Ácido Azelaico Al 15%</strong>
+        <span class="note-text">Every other night for the first 2 weeks, then every night if well tolerated.</span>
+      </li>
+      <li>Wait <strong>10–15 minutes</strong> (optional but recommended when layering actives).</li>
+      <li>Apply <strong>Idraet Pro White Emulsion</strong> (Niacinamide + Tranexamic Acid + Rice Proteins).</li>
+      <li>If skin feels dry or irritated, finish with <strong>Dermaglós Emulsión Hidratante</strong> after Pro White Emulsion absorbs.</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+  // ── Time-of-day highlight ──────────────────────────────────────────
+  function getTimeSlot() {
+    const h = new Date().getHours();
+    if (h >= 5 && h < 13) return 'morning';       // 5am–12:59pm
+    if (h >= 13 && h < 20) return 'afternoon';    // 1pm–7:59pm
+    return 'night';                                // 8pm–4:59am
+  }
+
+  function getTimeLabel(slot) {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const labels = { morning: 'Morning routine', afternoon: 'Afternoon routine', night: 'Night routine' };
+    return `${timeStr} · ${labels[slot]}`;
+  }
+
+  function applyHighlights() {
+    const slot = getTimeSlot();
+    const tabs = ['melasmax', 'maintenance'];
+    const sections = { morning: 'morning', afternoon: 'afternoon', night: 'night' };
+    const cssClass = { morning: 'highlight-morning', afternoon: 'highlight-afternoon', night: 'highlight-night' };
+
+    tabs.forEach(tab => {
+      Object.keys(sections).forEach(s => {
+        const el = document.getElementById(`${tab}-${s}`);
+        el.classList.remove('highlight-morning', 'highlight-afternoon', 'highlight-night');
+        if (s === slot) el.classList.add(cssClass[slot]);
+      });
+    });
+
+    document.getElementById('currentTimeDisplay').textContent = getTimeLabel(slot);
+  }
+
+  applyHighlights();
+  setInterval(applyHighlights, 60000); // refresh every minute
+
+  // ── Tab switching ─────────────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  // ── Storage helpers ───────────────────────────────────────────────
+  function save(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+  }
+  function load(key) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; }
+  }
+
+  // ── MELASMAX TRACKER (6 weeks = 42 days) ─────────────────────────
+  const MELASMAX_DAYS = 42;
+
+  function updateMelasmaxUI() {
+    const data = load('melasmax');
+    const btn = document.getElementById('melasmax-btn');
+    const status = document.getElementById('melasmax-status');
+    const bar = document.getElementById('melasmax-bar');
+
+    if (!data || !data.startDate) {
+      btn.textContent = 'Start Treatment';
+      status.innerHTML = 'Not started yet';
+      bar.style.width = '0%';
+      return;
+    }
+
+    const start = new Date(data.startDate);
+    const now = new Date();
+    const daysPassed = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+    const daysLeft = MELASMAX_DAYS - daysPassed;
+    const pct = Math.min(100, Math.round((daysPassed / MELASMAX_DAYS) * 100));
+
+    bar.style.width = pct + '%';
+
+    if (daysLeft <= 0) {
+      status.innerHTML = '🎉 <span>6 weeks complete!</span> Treatment done.';
+      btn.textContent = 'Completed ✓';
+      btn.style.background = '#7A9B7A';
+    } else {
+      const startStr = start.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      status.innerHTML = `Day <span>${daysPassed + 1}</span> of 42 · <span>${daysLeft}</span> days left`;
+      btn.textContent = `Started ${startStr}`;
+      btn.style.background = '#A07060';
+    }
+  }
+
+  function toggleMelasmaxTracker() {
+    const data = load('melasmax');
+    if (!data || !data.startDate) {
+      save('melasmax', { startDate: new Date().toISOString() });
+    }
+    updateMelasmaxUI();
+  }
+
+  function resetMelasmax() {
+    if (confirm('Reset the treatment tracker? This will clear your start date.')) {
+      save('melasmax', null);
+      const btn = document.getElementById('melasmax-btn');
+      btn.style.background = '';
+      updateMelasmaxUI();
+    }
+  }
+
+  // ── MAINTENANCE TRACKER (open-ended streak) ──────────────────────
+  function updateMaintenanceUI() {
+    const data = load('maintenance');
+    const btn = document.getElementById('maintenance-btn');
+    const status = document.getElementById('maintenance-status');
+    const daysEl = document.getElementById('maintenance-days');
+    const unitEl = document.getElementById('maintenance-unit');
+
+    if (!data || !data.startDate) {
+      daysEl.textContent = '0';
+      unitEl.textContent = 'days';
+      status.textContent = 'Track how long you keep this going 💪';
+      btn.textContent = 'Start Tracking';
+      btn.style.background = '';
+      return;
+    }
+
+    const start = new Date(data.startDate);
+    const now = new Date();
+    const days = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+    const weeks = Math.floor(days / 7);
+    const months = Math.floor(days / 30);
+
+    daysEl.textContent = days;
+    unitEl.textContent = days === 1 ? 'day' : 'days';
+
+    let streakNote = '';
+    if (months >= 1) streakNote = `That's ${months} month${months > 1 ? 's' : ''}! 🌟`;
+    else if (weeks >= 1) streakNote = `That's ${weeks} week${weeks > 1 ? 's' : ''}! Keep going!`;
+    else if (days >= 1) streakNote = 'Great start! 🌿';
+    else streakNote = 'Track how long you keep this going 💪';
+
+    status.textContent = streakNote;
+
+    const startStr = start.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    btn.textContent = `Since ${startStr}`;
+    btn.style.background = '#A07060';
+  }
+
+  function toggleMaintenanceTracker() {
+    const data = load('maintenance');
+    if (!data || !data.startDate) {
+      save('maintenance', { startDate: new Date().toISOString() });
+    }
+    updateMaintenanceUI();
+  }
+
+  function resetMaintenance() {
+    if (confirm('Reset the maintenance tracker? Your streak will be lost.')) {
+      save('maintenance', null);
+      updateMaintenanceUI();
+    }
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────
+  updateMelasmaxUI();
+  updateMaintenanceUI();
+</script>
+</body>
+</html>
