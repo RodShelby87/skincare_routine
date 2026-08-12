@@ -277,6 +277,54 @@
     line-height: 1;
   }
 
+  .tonight-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 14px;
+    margin: 12px 14px 0;
+    border-radius: 8px;
+    display: inline-block;
+    letter-spacing: 0.2px;
+  }
+
+  .tonight-hq {
+    background: #2A1A3A;
+    color: #C8A0E8;
+    border: 1px solid #6A3A8A;
+  }
+
+  .tonight-az {
+    background: #0E2A1A;
+    color: #80C890;
+    border: 1px solid #2A6A3A;
+  }
+
+  /* Phase card for transition tab */
+  .phase-card {
+    background: #1E1A28;
+    border: 1.5px solid #4A3A6A;
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+
+  .phase-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    color: #9A70C8;
+    margin-bottom: 6px;
+  }
+
+  .phase-text {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  .phase-text strong { color: #C8A0E8; }
+
   .streak-unit {
     font-size: 13px;
     color: #7A6860;
@@ -291,6 +339,7 @@
   <div class="header-time" id="currentTimeDisplay"></div>
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('melasmax')">Melasmax</button>
+    <button class="tab-btn" onclick="switchTab('transition')">Transition</button>
     <button class="tab-btn" onclick="switchTab('maintenance')">Maintenance</button>
   </div>
 </header>
@@ -360,7 +409,76 @@
 
 </div>
 
-<!-- TAB 2: MAINTENANCE -->
+<!-- TAB 2: TRANSITION -->
+<div id="tab-transition" class="tab-content">
+
+  <div class="tracker-card">
+    <div class="tracker-label">4-Week Taper</div>
+    <div class="tracker-status" id="transition-status">Not started yet</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="transition-bar" style="width:0%"></div>
+    </div>
+    <div class="tracker-btns">
+      <button class="btn-start" id="transition-btn" onclick="toggleTransitionTracker()">Start Transition</button>
+      <button class="btn-reset" onclick="resetTransition()">Reset</button>
+    </div>
+  </div>
+
+  <!-- Week phase info card -->
+  <div class="phase-card" id="transition-phase-card">
+    <div class="phase-label">Current Phase</div>
+    <div class="phase-text" id="transition-phase-text">Start the taper to see your current phase.</div>
+  </div>
+
+  <div class="routine-section" id="transition-morning">
+    <div class="routine-time-header">
+      <span class="time-icon">☀️</span>
+      <span class="time-label">Morning</span>
+      <span class="now-badge">Now</span>
+    </div>
+    <ul class="routine-steps">
+      <li>Wash your face with a gentle cleanser.</li>
+      <li>Apply <strong>Dermaglós Emulsión Hidratante</strong> if skin feels dry.</li>
+      <li>Apply <strong>Idraet Protector Solar FPS 50 con Color</strong> (tinted) generously — two-finger rule.</li>
+      <li>If outdoors for more than ~2 hours, reapply sunscreen.
+        <span class="note-text">Sun protection is especially critical during the taper phase.</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="routine-section" id="transition-afternoon">
+    <div class="routine-time-header">
+      <span class="time-icon">🚿</span>
+      <span class="time-label">After Shower</span>
+      <span class="now-badge">Now</span>
+    </div>
+    <ul class="routine-steps">
+      <li>Dry your face gently — don't rub.</li>
+      <li>If sunscreen washed off, apply <strong>Dermaglós Emulsión</strong> if needed.</li>
+      <li>Reapply <strong>Idraet Protector Solar FPS 50 con Color</strong> (tinted) generously — two-finger rule.
+        <span class="note-text">Only if your shower is at noon or in the afternoon.</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="routine-section" id="transition-night">
+    <div class="routine-time-header">
+      <span class="time-icon">🌙</span>
+      <span class="time-label">Night</span>
+      <span class="now-badge">Now</span>
+    </div>
+    <div id="transition-night-body">
+      <!-- Rendered dynamically by updateTransitionNight() -->
+      <ul class="routine-steps">
+        <li>Cleanse your face gently.</li>
+        <li><span style="color:#9A70C8;font-weight:600;">Start the taper</span> to see tonight's specific steps.</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<!-- TAB 3: MAINTENANCE -->
 <div id="tab-maintenance" class="tab-content">
 
   <div class="tracker-card">
@@ -443,7 +561,7 @@
 
   function applyHighlights() {
     const slot = getTimeSlot();
-    const tabs = ['melasmax', 'maintenance'];
+    const tabs = ['melasmax', 'transition', 'maintenance'];
     const sections = { morning: 'morning', afternoon: 'afternoon', night: 'night' };
     const cssClass = { morning: 'highlight-morning', afternoon: 'highlight-afternoon', night: 'highlight-night' };
 
@@ -584,8 +702,152 @@
     }
   }
 
+  // ── TRANSITION TRACKER (4 weeks = 28 days) ───────────────────────
+  const TRANSITION_DAYS = 28;
+
+  // Returns true if today is a Melasmax night given daysPassed since start
+  // Weeks 1–2: Mon / Wed / Fri  (day % 7 == 0, 2, 4 from start)
+  // Weeks 3–4: Mon / Thu        (day % 7 == 0, 3 from start)
+  function isMelasmaxNight(daysPassed) {
+    const phase = daysPassed < 14 ? 'early' : 'late';
+    const dow = daysPassed % 7; // 0 = same weekday as start day
+    if (phase === 'early') return [0, 2, 4].includes(dow);
+    return [0, 3].includes(dow);
+  }
+
+  function getTransitionPhase(daysPassed) {
+    if (daysPassed < 14) {
+      return {
+        week: Math.floor(daysPassed / 7) + 1,
+        label: 'Weeks 1–2',
+        hqFreq: '3× per week',
+        desc: 'Apply <strong>Melasmax 3 nights/week</strong>. <strong>Azelaic Acid + Pro White Emulsion</strong> all other nights.',
+      };
+    }
+    return {
+      week: Math.floor(daysPassed / 7) + 1,
+      label: 'Weeks 3–4',
+      hqFreq: '2× per week',
+      desc: 'Apply <strong>Melasmax 2 nights/week</strong>. <strong>Azelaic Acid + Pro White Emulsion</strong> all other nights.',
+    };
+  }
+
+  function renderTransitionNight(started, daysPassed, daysLeft) {
+    const body = document.getElementById('transition-night-body');
+
+    if (!started) {
+      body.innerHTML = `<ul class="routine-steps">
+        <li>Cleanse your face gently.</li>
+        <li><span style="color:#9A70C8;font-weight:600;">Start the taper</span> to see tonight's specific steps.</li>
+      </ul>`;
+      return;
+    }
+
+    if (daysLeft <= 0) {
+      body.innerHTML = `<ul class="routine-steps">
+        <li>Taper complete — switch to the <strong>Maintenance</strong> routine tonight.</li>
+      </ul>`;
+      return;
+    }
+
+    const melasmax = isMelasmaxNight(daysPassed);
+
+    if (melasmax) {
+      body.innerHTML = `
+        <div class="tonight-badge tonight-hq">🟣 Tonight: Melasmax</div>
+        <ul class="routine-steps">
+          <li>Cleanse your face gently.</li>
+          <li>Wait <strong>15–20 minutes</strong> so skin is completely dry.
+            <span class="note-text">Reduces irritation from hydroquinone.</span>
+          </li>
+          <li>Apply <strong>Melasmax</strong> only on the brown patches — thin layer.</li>
+          <li>Wait about 10 minutes.</li>
+          <li>Finish with <strong>Dermaglós Emulsión Hidratante</strong> around the face if dry — avoid rubbing over the Melasmax areas.
+            <span class="note-text">Skip Pro White Emulsion tonight — no need to layer over hydroquinone.</span>
+          </li>
+        </ul>`;
+    } else {
+      body.innerHTML = `
+        <div class="tonight-badge tonight-az">🟢 Tonight: Azelaic Acid</div>
+        <ul class="routine-steps">
+          <li>Cleanse your face gently.</li>
+          <li>Apply <strong>Acm Azéane Crema Ácido Azelaico Al 15%</strong>.</li>
+          <li>Wait <strong>10–15 minutes</strong>.
+            <span class="note-text">Lets the acid settle before layering.</span>
+          </li>
+          <li>Apply <strong>Idraet Pro White Emulsion</strong> (Niacinamide + Tranexamic Acid + Rice Proteins).</li>
+          <li>If skin feels dry or tight, finish with <strong>Dermaglós Emulsión Hidratante</strong> after the emulsion absorbs.</li>
+        </ul>`;
+    }
+  }
+
+  function updateTransitionUI() {
+    const data = load('transition');
+    const btn = document.getElementById('transition-btn');
+    const status = document.getElementById('transition-status');
+    const bar = document.getElementById('transition-bar');
+    const phaseText = document.getElementById('transition-phase-text');
+
+    if (!data || !data.startDate) {
+      btn.textContent = 'Start Transition';
+      btn.style.background = '';
+      status.innerHTML = 'Not started yet';
+      bar.style.width = '0%';
+      phaseText.innerHTML = 'Start the taper to see your current phase.';
+      renderTransitionNight(false, 0, 0);
+      return;
+    }
+
+    const start = new Date(data.startDate);
+    const now = new Date();
+    const daysPassed = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+    const daysLeft = TRANSITION_DAYS - daysPassed;
+    const pct = Math.min(100, Math.round((daysPassed / TRANSITION_DAYS) * 100));
+
+    bar.style.width = pct + '%';
+
+    if (daysLeft <= 0) {
+      status.innerHTML = '🎉 <span>Taper complete!</span> Move to Maintenance.';
+      btn.textContent = 'Completed ✓';
+      btn.style.background = '#7A9B7A';
+      phaseText.innerHTML = 'All done! Switch to the <strong>Maintenance</strong> routine now.';
+      renderTransitionNight(true, daysPassed, daysLeft);
+      return;
+    }
+
+    const phase = getTransitionPhase(daysPassed);
+    const melasmax = isMelasmaxNight(daysPassed);
+    const tonightLabel = melasmax ? '🟣 Melasmax night' : '🟢 Azelaic Acid night';
+    const startStr = start.toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+    status.innerHTML = `Week <span>${phase.week}</span> of 4 · <span>${daysLeft}</span> days left · ${tonightLabel}`;
+    btn.textContent = `Started ${startStr}`;
+    btn.style.background = '#A07060';
+    phaseText.innerHTML = `<strong>${phase.label} — ${phase.hqFreq} Melasmax</strong><br>${phase.desc}`;
+
+    renderTransitionNight(true, daysPassed, daysLeft);
+  }
+
+  function toggleTransitionTracker() {
+    const data = load('transition');
+    if (!data || !data.startDate) {
+      save('transition', { startDate: new Date().toISOString() });
+    }
+    updateTransitionUI();
+  }
+
+  function resetTransition() {
+    if (confirm('Reset the transition tracker? This will clear your start date.')) {
+      save('transition', null);
+      const btn = document.getElementById('transition-btn');
+      btn.style.background = '';
+      updateTransitionUI();
+    }
+  }
+
   // ── Init ──────────────────────────────────────────────────────────
   updateMelasmaxUI();
+  updateTransitionUI();
   updateMaintenanceUI();
 </script>
 </body>
