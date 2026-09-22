@@ -413,7 +413,7 @@
 <div id="tab-transition" class="tab-content">
 
   <div class="tracker-card">
-    <div class="tracker-label">4-Week Taper</div>
+    <div class="tracker-label">2-Week Taper</div>
     <div class="tracker-status" id="transition-status">Not started yet</div>
     <div class="progress-bar-wrap">
       <div class="progress-bar-fill" id="transition-bar" style="width:0%"></div>
@@ -702,33 +702,32 @@
     }
   }
 
-  // ── TRANSITION TRACKER (4 weeks = 28 days) ───────────────────────
-  const TRANSITION_DAYS = 28;
+  // ── TRANSITION TRACKER (2 weeks = 14 days) ───────────────────────
+  const TRANSITION_DAYS = 14;
 
   // Returns true if today is a Melasmax night given daysPassed since start
-  // Weeks 1–2: Mon / Wed / Fri  (day % 7 == 0, 2, 4 from start)
-  // Weeks 3–4: Mon / Thu        (day % 7 == 0, 3 from start)
+  // Week 1 (days 0–6): 3x/week — days 0, 2, 4 from start
+  // Week 2 (days 7–13): 2x/week — days 0, 3 within that week (i.e. 7, 10 from start)
   function isMelasmaxNight(daysPassed) {
-    const phase = daysPassed < 14 ? 'early' : 'late';
-    const dow = daysPassed % 7; // 0 = same weekday as start day
-    if (phase === 'early') return [0, 2, 4].includes(dow);
-    return [0, 3].includes(dow);
+    const dow = daysPassed % 7;
+    if (daysPassed < 7) return [0, 2, 4].includes(dow);  // week 1: 3x
+    return [0, 3].includes(dow);                          // week 2: 2x
   }
 
   function getTransitionPhase(daysPassed) {
-    if (daysPassed < 14) {
+    if (daysPassed < 7) {
       return {
-        week: Math.floor(daysPassed / 7) + 1,
-        label: 'Weeks 1–2',
-        hqFreq: '3× per week',
-        desc: 'Apply <strong>Melasmax 3 nights/week</strong>. <strong>Azelaic Acid + Pro White Emulsion</strong> all other nights.',
+        week: 1,
+        label: 'Week 1',
+        hqFreq: '3× this week',
+        desc: 'Apply <strong>Melasmax 3 nights</strong> this week. <strong>Azelaic Acid + Pro White Emulsion</strong> all other nights.',
       };
     }
     return {
-      week: Math.floor(daysPassed / 7) + 1,
-      label: 'Weeks 3–4',
-      hqFreq: '2× per week',
-      desc: 'Apply <strong>Melasmax 2 nights/week</strong>. <strong>Azelaic Acid + Pro White Emulsion</strong> all other nights.',
+      week: 2,
+      label: 'Week 2',
+      hqFreq: '2× this week',
+      desc: 'Apply <strong>Melasmax 2 nights</strong> this week — almost done. <strong>Azelaic Acid + Pro White Emulsion</strong> all other nights.',
     };
   }
 
@@ -820,7 +819,7 @@
     const tonightLabel = melasmax ? '🟣 Melasmax night' : '🟢 Azelaic Acid night';
     const startStr = start.toLocaleDateString([], { month: 'short', day: 'numeric' });
 
-    status.innerHTML = `Week <span>${phase.week}</span> of 4 · <span>${daysLeft}</span> days left · ${tonightLabel}`;
+    status.innerHTML = `Week <span>${phase.week}</span> of 2 · <span>${daysLeft}</span> days left · ${tonightLabel}`;
     btn.textContent = `Started ${startStr}`;
     btn.style.background = '#A07060';
     phaseText.innerHTML = `<strong>${phase.label} — ${phase.hqFreq} Melasmax</strong><br>${phase.desc}`;
